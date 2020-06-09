@@ -54,7 +54,8 @@ class Parcela {
 	const ancho
 	const largo
 	const property horasDeSol
-	const plantas = []
+	const property plantas = []
+//	const tipo = ecologico // Alternativa 2
 	
 	method superficie() { return ancho * largo }
 	method cantidadMaximaDePlantas() { return 
@@ -84,6 +85,64 @@ class Parcela {
 	method monocultivo() { return self.cantidadMaximaDePlantas() == 1 }
 	
 	method tienePlantasAltas() { return plantas.any({ planta => planta.esAlta() }) }
+	
+	method seAsociaBien(planta) // Alternativa 1
+	
+//	method seAsociaBien(planta) { // Alternativa 2
+//		return tipo.seAsociaBien(planta, self)
+//	} 
+
+	method cantPlantas() { return plantas.size() }
+	
+	method porcentajePlantasBienAsociadas() {
+		return self.plantasBienAsociadas().size() / self.cantPlantas() * 100 
+	}
+	
+	method plantasBienAsociadas() {
+		return plantas.filter({ planta => self.seAsociaBien(planta) })
+	}
+}
+
+
+// ALternativa 1: Herencia
+class ParcelaEcologica inherits Parcela {
+	override method seAsociaBien(planta) { 
+		return not self.tieneComplicaciones() and planta.esIdeal(self)
+	}
+}
+
+
+class ParcelaIndustrial inherits Parcela {
+	override method seAsociaBien(planta) { 
+		return self.cantPlantas() <= 2 and planta.esFuerte()
+	}
+}
+
+// Alternativa 2: Composicion
+object ecologico {
+	method seAsociaBien(planta, parcela) {
+		return not parcela.tieneComplicaciones() and planta.esIdeal(parcela)
+	}
+}
+
+object industrial {
+	method seAsociaBien(planta, parcela) {
+		return parcela.cantPlantas() <= 2 and planta.esFuerte()
+	}
+}
+
+
+object inta {
+	const parcelas = []
+	
+	method promedioDePlantas() { return self.cantPlantasTotales() / parcelas.size()}
+	method cantPlantasTotales() { return parcelas.sum({ parcela => parcela.cantPlantas() })}
+	
+	method parcelaMasSustentable() { 
+		return parcelas
+			.filter({ parcela => parcela.cantPlantas() > 4 })
+			.max({ parcela => parcela.porcentajePlantasBienAsociadas() })
+	}
 }
 
 
